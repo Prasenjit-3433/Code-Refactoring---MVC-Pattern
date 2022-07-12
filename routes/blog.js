@@ -2,6 +2,7 @@ const express = require('express');
 const mongodb = require('mongodb');
 
 const db = require('../data/database');
+const Post = require('../models/post');
 
 const ObjectId = mongodb.ObjectId;
 const router = express.Router();
@@ -59,12 +60,13 @@ router.post('/posts', async function (req, res) {
     return; // or return res.redirect('/admin'); => Has the same effect
   }
 
-  const newPost = {
-    title: enteredTitle,
-    content: enteredContent,
-  };
+  const post = new Post(enteredTitle, enteredContent);
 
-  await db.getDb().collection('posts').insertOne(newPost);
+  // await this process before redirecting to admin page, otherwise the added post will not be seen:
+  await post.save(); 
+
+  // Note: we can await here because the save() method is an async and all async functions/ methods return
+  //       promises by default
 
   res.redirect('/admin');
 });
