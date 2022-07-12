@@ -8,6 +8,7 @@ const sessionConfig = require('./config/session');
 const db = require('./data/database');
 const authRoutes = require('./routes/auth');
 const blogRoutes = require('./routes/blog');
+const authMiddleware = require('./middlewares/auth-middlewares');
 
 const mongoDbSessionStore = sessionConfig.createSessionStore(session);
 
@@ -24,18 +25,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session(sessionConfig.createSessionConfig(mongoDbSessionStore)));
 app.use(csrf());
 
-app.use(async function(req, res, next) {
-  const user = req.session.user;
-  const isAuth = req.session.isAuthenticated;
+app.use(authMiddleware); // don't get executed by us, instead by express once it receives http requests.
 
-  if (!user || !isAuth) {
-    return next();
-  }
-
-  res.locals.isAuth = isAuth;
-
-  next();
-});
+// Note: No middleware is excuted by us, instead they're executed by express.
+//      Then why middlewares like static, urlencoded, session execute in app.use (why?).
+//      Because these are functions with configuration object passed into it and result of calling those functions
+//      gives the middleware whereas authMiddleware is itself a middleware (custom middleware). That's why 
+//      static, urlencoded, session etc. are executed but authMiddleware not!
 
 app.use(authRoutes);
 app.use(blogRoutes);
