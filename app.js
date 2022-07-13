@@ -9,12 +9,11 @@ const db = require('./data/database');
 const authRoutes = require('./routes/auth');
 const blogRoutes = require('./routes/blog');
 const authMiddleware = require('./middlewares/auth-middlewares');
+const addCSRFTokenMiddleware = require('./middlewares/csrf-token-middleware');
 
 const mongoDbSessionStore = sessionConfig.createSessionStore(session);
 
 const app = express();
-
-
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -25,7 +24,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(session(sessionConfig.createSessionConfig(mongoDbSessionStore)));
 app.use(csrf());
 
-app.use(authMiddleware); // don't get executed by us, instead by express once it receives http requests.
+// These middlewares don't get executed by us, instead by express once it receives http requests.
+app.use(addCSRFTokenMiddleware);
+app.use(authMiddleware); 
 
 // Note: No middleware is excuted by us, instead they're executed by express.
 //      Then why middlewares like static, urlencoded, session execute in app.use (why?).
