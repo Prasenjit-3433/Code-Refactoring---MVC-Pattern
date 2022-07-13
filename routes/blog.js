@@ -1,10 +1,7 @@
 const express = require('express');
-const mongodb = require('mongodb');
 
-const db = require('../data/database');
 const Post = require('../models/post');
 
-const ObjectId = mongodb.ObjectId;
 const router = express.Router();
 
 router.get('/', function (req, res) {
@@ -16,7 +13,7 @@ router.get('/admin', async function (req, res) {
     return res.status(401).render('401');
   }
 
-  const posts = await db.getDb().collection('posts').find().toArray();
+  const posts = await Post.fetchAll();
 
   let sessionInputData = req.session.inputData;
 
@@ -65,17 +62,21 @@ router.post('/posts', async function (req, res) {
   // await this process before redirecting to admin page, otherwise the added post will not be seen:
   await post.save(); 
 
-  // Note: we can await here because the save() method is an async and all async functions/ methods return
+  // Note: we can await here because the save() method is an async function and all async functions/ methods return
   //       promises by default
 
   res.redirect('/admin');
 });
 
 router.get('/posts/:id/edit', async function (req, res) {
-  const postId = new ObjectId(req.params.id);
-  const post = await db.getDb().collection('posts').findOne({ _id: postId });
+  // created an instance without title, content:
+  const post = new Post(null, null, req.params.id);
 
-  if (!post) {
+  // Then called fetch method on it to fill `title`, `id` internally:
+  await post.fetch();
+
+  // Check: we created a Post object but whether we were able to populate that with `title`, `content`: 
+  if (!post.title || !post.content) {
     return res.render('404'); // 404.ejs is missing at this point - it will be added later!
   }
 
@@ -101,7 +102,6 @@ router.get('/posts/:id/edit', async function (req, res) {
 router.post('/posts/:id/edit', async function (req, res) {
   const enteredTitle = req.body.title;
   const enteredContent = req.body.content;
-  const postId = new ObjectId(req.params.id);
 
   if (
     !enteredTitle ||
@@ -120,20 +120,20 @@ router.post('/posts/:id/edit', async function (req, res) {
     return; 
   }
 
-  await db
-    .getDb()
-    .collection('posts')
-    .updateOne(
-      { _id: postId },
-      { $set: { title: enteredTitle, content: enteredContent } }
-    );
+  const post = new Post(enteredTitle, enteredContent, req.params.id.trim());
+  // await this process before redirecting to admin page, otherwise the added post will not be seen:
+  await post.save()
+
+  // Note: we can await here because the save() method is an async function and all async functions/ methods return
+  //       promises by default
 
   res.redirect('/admin');
 });
 
 router.post('/posts/:id/delete', async function (req, res) {
-  const postId = new ObjectId(req.params.id);
-  await db.getDb().collection('posts').deleteOne({ _id: postId });
+  // Passing `null` as arg for title, content as we're not creating any instance of the Post class:
+  const post = new Post(null, null, req.params.id);
+  await post.delete();
 
   res.redirect('/admin');
 });
