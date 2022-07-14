@@ -10,8 +10,9 @@ class Post {
     this.title = title;
     this.content = content;
     if (id) {
-      // `id` is a raw string. we have to convert it to ObjectId object of mongodb:
-      this.id = new ObjectId(id.trim());
+      // `id` is a raw string. we have to convert it to mongodb id object:
+      this.id = new ObjectId(id.trim()); // <- this ObjectId constructor throws an error if it receives an id that 
+                                        //     does't follow mongodb id format.
     }
   }
 

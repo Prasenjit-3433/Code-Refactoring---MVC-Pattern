@@ -2,7 +2,7 @@ const Post = require("../models/post");
 const validationSession = require("../util/validation-session");
 const validation = require("../util/validation");
 
-// **** These functions are not actually controllers, these are called `actions` of this controller file and the grouping of these 
+// **** These functions are not actually controllers, these are called `actions` of this controller file and the grouping of these
 //      functions that act on a certain feature like blog, authentication that makes up a controller.
 
 function getHome(req, res) {
@@ -17,8 +17,8 @@ async function getAdmin(req, res) {
   const posts = await Post.fetchAll();
 
   const sessionErrorData = validationSession.getSessionErrorData(req, {
-    title: '',
-    content: ''
+    title: "",
+    content: "",
   });
 
   res.render("admin", {
@@ -58,9 +58,17 @@ async function createPost(req, res) {
   res.redirect("/admin");
 }
 
-async function getSinglePost(req, res) {
-  // created an instance without title, content:
-  const post = new Post(null, null, req.params.id);
+async function getSinglePost(req, res, next) {
+  let post;
+  try {
+    // created an instance without title, content:
+    post = new Post(null, null, req.params.id);
+  } catch (error) {
+    // forward the error to the default error-handling middleware:
+    // return next(error);
+
+    return res.render('404');
+  }
 
   // Then called fetch method on it to fill `title`, `id` internally:
   await post.fetch();
@@ -70,10 +78,10 @@ async function getSinglePost(req, res) {
     return res.render("404"); // 404.ejs is missing at this point - it will be added later!
   }
 
-const sessionErrorData = validationSession.getSessionErrorData(req, {
+  const sessionErrorData = validationSession.getSessionErrorData(req, {
     title: post.title,
-    content: post.content
-});
+    content: post.content,
+  });
 
   res.render("single-post", {
     post: post,
