@@ -34,7 +34,8 @@ app.use(authMiddleware);
 //      gives the middleware whereas authMiddleware is itself a middleware (custom middleware). That's why 
 //      static, urlencoded, session etc. are executed but authMiddleware not!
 
-app.use(authRoutes);
+
+app.use(authRoutes); // <-- unauthenticated routes should appear first!
 app.use(blogRoutes);
 
 app.use(function(error, req, res, next) {
