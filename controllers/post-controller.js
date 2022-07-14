@@ -2,6 +2,9 @@ const Post = require("../models/post");
 const validationSession = require("../util/validation-session");
 const validation = require("../util/validation");
 
+// **** These functions are not actually controllers, these are called `actions` of this controller file and the grouping of these 
+//      functions that act on a certain feature like blog, authentication that makes up a controller.
+
 function getHome(req, res) {
   res.render("welcome");
 }

@@ -17,7 +17,6 @@ function getSessionErrorData(req, defaultValues) {
 function flashErrorToSession(req, data, action) {
     req.session.inputData = {
         hasError: true,
-        message: "Invalid input - please check your data.",
         ...data
       };
 
